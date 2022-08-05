@@ -95,12 +95,10 @@ class FormDataParser:
             cls=self.cls,
             file_storage_cls=self.file_storage_class,
         )
-        boundary = options.get("boundary", "").encode("ascii")
-
-        if not boundary:
+        if boundary := options.get("boundary", "").encode("ascii"):
+            return await parser.parse(body, boundary, content_length)
+        else:
             raise ValueError("Missing boundary")
-
-        return await parser.parse(body, boundary, content_length)
 
     async def _parse_urlencoded(
         self,
@@ -142,9 +140,7 @@ class MultiPartParser:
         raise ValueError(message)
 
     def get_part_charset(self, headers: Headers) -> str:
-        content_type = headers.get("content-type")
-
-        if content_type:
+        if content_type := headers.get("content-type"):
             mimetype, ct_params = parse_options_header(content_type)
             return ct_params.get("charset", self.charset)
 
@@ -158,13 +154,12 @@ class MultiPartParser:
         except (KeyError, ValueError):
             content_length = 0
 
-        container = self.stream_factory(
+        return self.stream_factory(
             total_content_length,
             content_type,
             event.filename,
             content_length,
         )
-        return container
 
     async def parse(
         self, body: "Body", boundary: bytes, content_length: int

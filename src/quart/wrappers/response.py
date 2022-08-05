@@ -213,9 +213,7 @@ class IOBody(ResponseBody):
         if current >= self.end:
             raise StopAsyncIteration()
         read_size = min(self.buffer_size, self.end - current)
-        chunk = self.io_stream.read(read_size)
-
-        if chunk:
+        if chunk := self.io_stream.read(read_size):
             return chunk
         else:
             raise StopAsyncIteration()
@@ -323,10 +321,7 @@ class Response(SansIOResponse):
         result = "" if as_text else b""
         async with self.response as body:
             async for data in body:
-                if as_text:
-                    result += data.decode(self.charset)
-                else:
-                    result += data
+                result += data.decode(self.charset) if as_text else data
         return result  # type: ignore
 
     def set_data(self, data: AnyStr) -> None:
@@ -334,10 +329,7 @@ class Response(SansIOResponse):
 
         This will encode using the :attr:`charset`.
         """
-        if isinstance(data, str):
-            bytes_data = data.encode(self.charset)
-        else:
-            bytes_data = data
+        bytes_data = data.encode(self.charset) if isinstance(data, str) else data
         self.response = self.data_body_class(bytes_data)
         if self.automatically_set_content_length:
             self.content_length = len(bytes_data)
@@ -432,7 +424,7 @@ class Response(SansIOResponse):
             self.set_etag(md5((await self.get_data(as_text=False))).hexdigest(), weak)
 
     def _set_or_pop_header(self, key: str, value: str) -> None:
-        if value == "":
+        if not value:
             self.headers.pop(key, None)
         else:
             self.headers[key] = value

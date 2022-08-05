@@ -41,11 +41,7 @@ class QuartMap(Map):
         self, request: BaseRequestWebsocket, subdomain: Optional[str], server_name: Optional[str]
     ) -> MapAdapter:
         host: str
-        if server_name is None:
-            host = request.host.lower()
-        else:
-            host = server_name.lower()
-
+        host = request.host.lower() if server_name is None else server_name.lower()
         host = _normalise_host(request.scheme, host)
 
         if subdomain is None and not self.host_matching:

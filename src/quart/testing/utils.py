@@ -45,7 +45,7 @@ def make_test_headers_path_and_query_string(
         headers = Headers()
     elif isinstance(headers, Headers):
         headers = headers
-    elif headers is not None:
+    else:
         headers = Headers(headers)
 
     if auth is not None:
@@ -191,7 +191,7 @@ def make_test_scope(
         "_quart._preserve_context": _preserve_context,
     }
     if scope_base is not None:
-        scope.update(scope_base)
+        scope |= scope_base
     if type_ == "http" and http_version in {"2", "3"}:
         scope["extensions"] = {"http.response.push": {}}
     elif type_ == "websocket":

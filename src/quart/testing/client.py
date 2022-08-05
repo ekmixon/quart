@@ -44,10 +44,7 @@ class _TestWrapper:
 
     def get_all(self, name: str, default: Optional[Any] = None) -> List[str]:
         name = name.lower()
-        result = []
-        for key, value in self.headers:
-            if key.lower() == name:
-                result.append(value)
+        result = [value for key, value in self.headers if key.lower() == name]
         return result or default or []
 
 
@@ -69,10 +66,7 @@ class QuartClient:
     def __init__(self, app: "Quart", use_cookies: bool = True) -> None:
         self.app = app
         self.cookie_jar: Optional[CookieJar]
-        if use_cookies:
-            self.cookie_jar = CookieJar()
-        else:
-            self.cookie_jar = None
+        self.cookie_jar = CookieJar() if use_cookies else None
         self.preserve_context = False
         self.push_promises: List[Tuple[str, Headers]] = []
 
@@ -115,7 +109,7 @@ class QuartClient:
                 # Most browsers respond to an HTTP 302 with a GET request to the new location,
                 # despite what the HTTP spec says. HTTP 303 should always be responded to with
                 # a GET request.
-                if response.status_code == 302 or response.status_code == 303:
+                if response.status_code in [302, 303]:
                     method = "GET"
                 response = await self._make_request(
                     response.location,
@@ -339,7 +333,7 @@ class QuartClient:
             headers = Headers()
         elif isinstance(headers, Headers):
             headers = headers
-        elif headers is not None:
+        else:
             headers = Headers(headers)
         for cookie in self.cookie_jar:
             headers.add("cookie", f"{cookie.name}={cookie.value}")

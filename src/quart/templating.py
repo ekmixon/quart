@@ -174,7 +174,4 @@ async def _stream(app: "Quart", template: Template, context: Dict[str, Any]) -> 
         await template_rendered.send(app, template=template, context=context)
 
     # If a request context is active, keep it while generating.
-    if has_request_context():
-        return stream_with_context(generate)()
-    else:
-        return generate()
+    return stream_with_context(generate)() if has_request_context() else generate()

@@ -35,7 +35,7 @@ def get_debug_flag() -> bool:
     value = os.getenv("QUART_DEBUG", None)
 
     if value is None:
-        return "development" == get_env()
+        return get_env() == "development"
 
     return value.lower() not in {"0", "false", "no"}
 
@@ -48,10 +48,7 @@ def get_load_dotenv(default: bool = True) -> bool:
     """
     val = os.environ.get("QUART_SKIP_DOTENV")
 
-    if not val:
-        return default
-
-    return val.lower() in ("0", "false", "no")
+    return val.lower() in ("0", "false", "no") if val else default
 
 
 def get_env(default: Optional[str] = "production") -> str:
@@ -254,8 +251,7 @@ def find_package(name: str) -> Tuple[Optional[Path], Path]:
             filename = sys.modules[name].__file__
         package_path = Path(filename).resolve().parent
         if hasattr(loader, "is_package"):
-            is_package = loader.is_package(module)  # type: ignore
-            if is_package:
+            if is_package := loader.is_package(module):
                 package_path = Path(package_path).resolve().parent
     sys_prefix = Path(sys.prefix).resolve()
     try:
@@ -345,9 +341,8 @@ async def send_file(
             last_modified = file_path.stat().st_mtime  # type: ignore
         if cache_timeout is None:
             cache_timeout = current_app.get_send_file_max_age(str(file_path))
-        etag = "{}-{}-{}".format(
-            file_path.stat().st_mtime, file_path.stat().st_size, adler32(bytes(file_path))
-        )
+        etag = f"{file_path.stat().st_mtime}-{file_path.stat().st_size}-{adler32(bytes(file_path))}"
+
 
     if mimetype is None and attachment_filename is not None:
         mimetype = mimetypes.guess_type(attachment_filename)[0] or DEFAULT_MIMETYPE

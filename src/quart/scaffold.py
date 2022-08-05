@@ -189,10 +189,7 @@ class Scaffold:
     def static_url_path(self) -> Optional[str]:
         if self._static_url_path is not None:
             return self._static_url_path
-        if self.static_folder is not None:
-            return "/" + self.static_folder.name
-        else:
-            return None
+        return None if self.static_folder is None else f"/{self.static_folder.name}"
 
     @static_url_path.setter
     def static_url_path(self, static_url_path: str) -> None:
@@ -798,11 +795,7 @@ class Scaffold:
         self, error: Union[Type[Exception], int]
     ) -> Tuple[Type[Exception], Optional[int]]:
         error_type: Type[Exception]
-        if isinstance(error, int):
-            error_type = default_exceptions[error]
-        else:
-            error_type = error
-
+        error_type = default_exceptions[error] if isinstance(error, int) else error
         if not issubclass(error_type, Exception):
             raise KeyError("Custom exceptions must be subclasses of Exception.")
 

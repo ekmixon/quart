@@ -332,11 +332,7 @@ class Request(BaseRequestWebsocket):
         try:
             result = self.json_module.loads(data)
         except ValueError as error:
-            if silent:
-                result = None
-            else:
-                result = self.on_json_loading_failed(error)
-
+            result = None if silent else self.on_json_loading_failed(error)
         if cache:
             self._cached_json[silent] = result
 

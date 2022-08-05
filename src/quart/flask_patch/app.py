@@ -37,17 +37,12 @@ def new_ensure_async(  # type: ignore
 
     if is_coroutine_function(func):
         return func
-    else:
+    @wraps(func)
+    async def _wrapper(*args: Any, **kwargs: Any) -> Any:
+        result = func(*args, **kwargs)
+        return await result if iscoroutine(result) else result
 
-        @wraps(func)
-        async def _wrapper(*args: Any, **kwargs: Any) -> Any:
-            result = func(*args, **kwargs)
-            if iscoroutine(result):
-                return await result
-            else:
-                return result
-
-        return _wrapper
+    return _wrapper
 
 
 Quart.ensure_async = new_ensure_async  # type: ignore

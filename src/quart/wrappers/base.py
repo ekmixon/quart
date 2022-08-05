@@ -75,10 +75,7 @@ class BaseRequestWebsocket(SansIORequest):
     @property
     def max_content_length(self) -> Optional[int]:
         """Read-only view of the ``MAX_CONTENT_LENGTH`` config key."""
-        if current_app:
-            return current_app.config["MAX_CONTENT_LENGTH"]
-        else:
-            return None
+        return current_app.config["MAX_CONTENT_LENGTH"] if current_app else None
 
     @property
     def endpoint(self) -> Optional[str]:
@@ -87,10 +84,7 @@ class BaseRequestWebsocket(SansIORequest):
         This can be None if the request has not been matched with a
         rule.
         """
-        if self.url_rule is not None:
-            return self.url_rule.endpoint
-        else:
-            return None
+        return self.url_rule.endpoint if self.url_rule is not None else None
 
     @property
     def blueprint(self) -> Optional[str]:
@@ -113,10 +107,7 @@ class BaseRequestWebsocket(SansIORequest):
         # Avoid circular import
         from ..helpers import _split_blueprint_path
 
-        if self.blueprint is not None:
-            return _split_blueprint_path(self.blueprint)
-        else:
-            return []
+        return [] if self.blueprint is None else _split_blueprint_path(self.blueprint)
 
     @property
     def script_root(self) -> str:

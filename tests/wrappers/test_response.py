@@ -29,9 +29,7 @@ async def _simple_async_generator() -> AsyncGenerator[bytes, None]:
     yield b"def"
 
 
-@pytest.mark.parametrize(
-    "iterable", [[b"abc", b"def"], (data for data in [b"abc", b"def"]), _simple_async_generator()]
-)
+@pytest.mark.parametrize("iterable", [[b"abc", b"def"], iter([b"abc", b"def"]), _simple_async_generator()])
 async def test_iterable_wrapper(iterable: Any) -> None:
     wrapper = IterableBody(iterable)
     results = []

@@ -78,11 +78,11 @@ def test_add_url_rule_methods(
     route.methods = methods  # type: ignore
     route.required_methods = required_methods  # type: ignore
 
-    non_func_methods = {"PATCH"} if not methods else None
+    non_func_methods = None if methods else {"PATCH"}
     app.add_url_rule(
         "/", "end", route, methods=non_func_methods, provide_automatic_options=automatic_options
     )
-    result = {"PATCH"} if not methods else set()
+    result = set() if methods else {"PATCH"}
     if automatic_options:
         result.add("OPTIONS")
     result.update(methods)
@@ -153,29 +153,15 @@ async def test_subdomain() -> None:
     assert (await response.get_data(as_text=True)) == "sub"
 
 
-@pytest.mark.parametrize(
-    "result, expected, raises",
-    [
-        (None, None, True),
-        ((None, 201), None, True),
-        (TEST_RESPONSE, TEST_RESPONSE, False),
-        (("hello", {"X-Header": "bob"}), Response("hello", headers={"X-Header": "bob"}), False),
-        (("hello", 201), Response("hello", 201), False),
-        (
+@pytest.mark.parametrize("result, expected, raises", [(None, None, True), ((None, 201), None, True), (TEST_RESPONSE, TEST_RESPONSE, False), (("hello", {"X-Header": "bob"}), Response("hello", headers={"X-Header": "bob"}), False), (("hello", 201), Response("hello", 201), False), (
             ("hello", 201, {"X-Header": "bob"}),
             Response("hello", 201, headers={"X-Header": "bob"}),
             False,
-        ),
-        (
+        ), (
             (WerkzeugResponse("hello"), 201, {"X-Header": "bob"}),
             WerkzeugResponse("hello", 201, {"X-Header": "bob"}),
             False,
-        ),
-        (InternalServerError(), InternalServerError().get_response(), False),
-        ((val for val in "abcd"), Response((val for val in "abcd")), False),
-        (int, None, True),
-    ],
-)
+        ), (InternalServerError(), InternalServerError().get_response(), False), (iter("abcd"), Response(iter("abcd")), False), (int, None, True)])
 async def test_make_response(
     result: ResponseReturnValue, expected: Union[Response, WerkzeugResponse], raises: bool
 ) -> None:

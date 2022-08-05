@@ -103,8 +103,8 @@ class _BaseRequestWebsocketContext:
                 self.app, self.request_websocket
             )
 
-            if self.session is None:
-                self.session = await session_interface.make_null_session(self.app)
+        if self.session is None:
+            self.session = await session_interface.make_null_session(self.app)
 
         if self.url_adapter is not None:
             self.match_request()

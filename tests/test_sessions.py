@@ -89,8 +89,8 @@ async def test_secure_cookie_session_interface_save_session() -> None:
     cookies.load(response.headers["Set-Cookie"])
     cookie = cookies[app.session_cookie_name]
     assert cookie["path"] == interface.get_cookie_path(app)
-    assert cookie["httponly"] == "" if not interface.get_cookie_httponly(app) else True
-    assert cookie["secure"] == "" if not interface.get_cookie_secure(app) else True
+    assert True if interface.get_cookie_httponly(app) else cookie["httponly"] == ""
+    assert True if interface.get_cookie_secure(app) else cookie["secure"] == ""
     if version_info >= (3, 8):
         assert cookie["samesite"] == (interface.get_cookie_samesite(app) or "")
     assert cookie["domain"] == (interface.get_cookie_domain(app) or "")

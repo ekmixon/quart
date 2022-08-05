@@ -64,10 +64,7 @@ class ConfigAttribute:
         if instance is None:
             return self
         result = instance.config[self.key]
-        if self.converter is not None:
-            return self.converter(result)
-        else:
-            return result
+        return self.converter(result) if self.converter is not None else result
 
     def __set__(self, instance: Any, value: Any) -> None:
         instance.config[self.key] = value
@@ -295,7 +292,7 @@ class Config(dict):
         """
         mappings: Dict[str, Any] = {}
         if mapping is not None:
-            mappings.update(mapping)
+            mappings |= mapping
         mappings.update(kwargs)
         for key, value in mappings.items():
             if key.isupper():
@@ -327,10 +324,7 @@ class Config(dict):
         config = {}
         for key, value in self.items():
             if key.startswith(namespace):
-                if trim_namespace:
-                    new_key = key[len(namespace) :]
-                else:
-                    new_key = key
+                new_key = key[len(namespace) :] if trim_namespace else key
                 if lowercase:
                     new_key = new_key.lower()
                 config[new_key] = value

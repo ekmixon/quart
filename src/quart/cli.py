@@ -238,14 +238,13 @@ class ScriptInfo:
 
         if self.create_app is not None:
             app = self.create_app()
+        elif self.app_import_path:
+            path, name = (re.split(r":(?![\\/])", self.app_import_path, 1) + [None])[:2]
+            import_name = prepare_import(path)
+            app = locate_app(import_name, name)
         else:
-            if self.app_import_path:
-                path, name = (re.split(r":(?![\\/])", self.app_import_path, 1) + [None])[:2]
-                import_name = prepare_import(path)
-                app = locate_app(import_name, name)
-            else:
-                import_name = prepare_import("app.py")
-                app = locate_app(import_name, None)
+            import_name = prepare_import("app.py")
+            app = locate_app(import_name, None)
 
         if not app:
             raise NoAppException(
@@ -687,7 +686,7 @@ def shell_command() -> None:
         with open(startup) as f:
             eval(compile(f.read(), startup, "exec"), ctx)
 
-    ctx.update(current_app.make_shell_context())
+    ctx |= current_app.make_shell_context()
 
     # Site, customize, or startup script can set a hook to call when
     # entering interactive mode. The default one sets up readline with
@@ -733,7 +732,7 @@ def routes_command(sort: str, all_methods: bool) -> None:
 
     ignored_methods = set(() if all_methods else ("HEAD", "OPTIONS"))
 
-    if sort in ("endpoint", "rule"):
+    if sort in {"endpoint", "rule"}:
         rules = sorted(rules, key=attrgetter(sort))
     elif sort == "methods":
         rules = sorted(rules, key=lambda rule: sorted(rule.methods))

@@ -88,10 +88,7 @@ class Websocket(BaseRequestWebsocket):
                 response.
             subprotocol: The chosen subprotocol, optional.
         """
-        if headers is None:
-            headers_ = Headers()
-        else:
-            headers_ = Headers(headers)
+        headers_ = Headers() if headers is None else Headers(headers)
         await self._accept(headers_, subprotocol)
 
     async def close(self, code: int, reason: str = "") -> None:

@@ -32,17 +32,16 @@ async def posts():
 
 @app.route("/create/", methods=["GET", "POST"])
 async def create():
-    if request.method == "POST":
-        db = _get_db()
-        form = await request.form
-        db.execute(
-            "INSERT INTO post (title, text) VALUES (?, ?)",
-            [form["title"], form["text"]],
-        )
-        db.commit()
-        return redirect(url_for("posts"))
-    else:
+    if request.method != "POST":
         return await render_template("create.html")
+    db = _get_db()
+    form = await request.form
+    db.execute(
+        "INSERT INTO post (title, text) VALUES (?, ?)",
+        [form["title"], form["text"]],
+    )
+    db.commit()
+    return redirect(url_for("posts"))
 
 def init_db():
     db = _connect_db()

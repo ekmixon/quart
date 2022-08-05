@@ -10,8 +10,7 @@ from quart.views import MethodView, View
 
 @pytest.fixture
 def app() -> Quart:
-    app = Quart(__name__)
-    return app
+    return Quart(__name__)
 
 
 async def test_view(app: Quart) -> None:

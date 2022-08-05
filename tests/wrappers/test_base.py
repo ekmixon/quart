@@ -11,7 +11,10 @@ from quart.wrappers.base import BaseRequestWebsocket
 
 def test_basic_authorization(http_scope: HTTPScope) -> None:
     headers = Headers()
-    headers["Authorization"] = "Basic {}".format(b64encode(b"identity:secret").decode("ascii"))
+    headers[
+        "Authorization"
+    ] = f'Basic {b64encode(b"identity:secret").decode("ascii")}'
+
     request = BaseRequestWebsocket("GET", "http", "/", b"", headers, "", "1.1", http_scope)
     auth = request.authorization
     assert auth.username == "identity"

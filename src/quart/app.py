@@ -144,9 +144,7 @@ T_while_serving = TypeVar("T_while_serving", bound=WhileServingCallable)
 
 
 def _convert_timedelta(value: Union[float, timedelta]) -> timedelta:
-    if not isinstance(value, timedelta):
-        return timedelta(seconds=value)
-    return value
+    return value if isinstance(value, timedelta) else timedelta(seconds=value)
 
 
 class Quart(Scaffold):
@@ -348,18 +346,12 @@ class Quart(Scaffold):
         ``PROPAGATE_EXCEPTIONS`` config setting.
         """
         propagate = self.config["PROPAGATE_EXCEPTIONS"]
-        if propagate is not None:
-            return propagate
-        else:
-            return self.debug or self.testing
+        return propagate if propagate is not None else self.debug or self.testing
 
     @property
     def preserve_context_on_exception(self) -> bool:
         preserve = self.config["PRESERVE_CONTEXT_ON_EXCEPTION"]
-        if preserve is not None:
-            return preserve
-        else:
-            return self.debug
+        return preserve if preserve is not None else self.debug
 
     @property
     def logger(self) -> Logger:
@@ -428,10 +420,7 @@ class Quart(Scaffold):
     def templates_auto_reload(self) -> bool:
         """Returns True if templates should auto reload."""
         result = self.config["TEMPLATES_AUTO_RELOAD"]
-        if result is None:
-            return self.debug
-        else:
-            return result
+        return self.debug if result is None else result
 
     @templates_auto_reload.setter
     def templates_auto_reload(self, value: Optional[bool]) -> None:
@@ -491,10 +480,10 @@ class Quart(Scaffold):
         extra_context: dict = {}
         for name in names:
             for processor in self.template_context_processors[name]:
-                extra_context.update(await self.ensure_async(processor)())
+                extra_context |= await self.ensure_async(processor)()
 
         original = context.copy()
-        context.update(extra_context)
+        context |= extra_context
         context.update(original)
 
     def make_shell_context(self) -> dict:
@@ -505,7 +494,7 @@ class Quart(Scaffold):
         """
         context = {"app": self, "g": g}
         for processor in self.shell_context_processors:
-            context.update(processor())
+            context |= processor()
         return context
 
     @property
@@ -893,8 +882,11 @@ class Quart(Scaffold):
         """
         if request is not None:
             subdomain = (
-                (self.url_map.default_subdomain or None) if not self.subdomain_matching else None
+                None
+                if self.subdomain_matching
+                else (self.url_map.default_subdomain or None)
             )
+
 
             return self.url_map.bind_to_request(request, subdomain, self.config["SERVER_NAME"])
 
@@ -1204,10 +1196,7 @@ class Quart(Scaffold):
         run. Before Quart 0.11 this did not run the synchronous code
         in an executor.
         """
-        if is_coroutine_function(func):
-            return func
-        else:
-            return self.sync_to_async(func)
+        return func if is_coroutine_function(func) else self.sync_to_async(func)
 
     def sync_to_async(self, func: Callable[..., Any]) -> Callable[..., Awaitable[Any]]:
         """Return a async function that will run the synchronous function *func*.
@@ -1830,10 +1819,7 @@ class Quart(Scaffold):
             websocket_context: The websocket context, optional as Flask
                 omits this argument.
         """
-        if result is not None:
-            response = await self.make_response(result)
-        else:
-            response = None
+        response = await self.make_response(result) if result is not None else None
         try:
             response = await self.postprocess_websocket(response, websocket_context)
             await websocket_finished.send(self, response=response)
